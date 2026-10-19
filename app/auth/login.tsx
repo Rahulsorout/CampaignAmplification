@@ -1,5 +1,6 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Link, router } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -13,12 +14,14 @@ import {
     View,
 } from "react-native";
 import { useAuth } from "../../data/AuthContext";
+import { supabase } from "../../lib/supabase";
 
 export default function LoginScreen() {
   const { signIn } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginAsAdmin, setLoginAsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleLogin() {
@@ -31,10 +34,40 @@ export default function LoginScreen() {
 
     try {
       await signIn(email, password);
-      router.replace("/(tabs)");
+
+      // Fetch the authenticated user and verify their trusted role.
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error || !user) {
+        throw new Error("Unable to verify your account.");
+      }
+
+      // app_metadata must be assigned by a trusted server/admin.
+      const role = user.app_metadata?.role;
+      const isAdmin = role === "admin" || role === "reviewer";
+
+      if (loginAsAdmin && !isAdmin) {
+        await supabase.auth.signOut();
+
+        Alert.alert(
+          "Admin access denied",
+          "This account is not authorized as an Admin/Reviewer.",
+        );
+        return;
+      }
+
+      if (loginAsAdmin && isAdmin) {
+        router.replace("/admin" as any);
+      } else {
+        router.replace("/(tabs)");
+      }
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unable to log in.";
+
       Alert.alert("Login failed", message);
     } finally {
       setLoading(false);
@@ -55,13 +88,16 @@ export default function LoginScreen() {
         </View>
 
         <Text style={styles.brand}>CampaignAmplification</Text>
+
         <Text style={styles.heading}>Welcome back</Text>
+
         <Text style={styles.subtitle}>
           Sign in to continue supporting the causes you believe in.
         </Text>
 
         <View style={styles.card}>
           <Text style={styles.label}>Email address</Text>
+
           <TextInput
             style={styles.input}
             placeholder="you@example.com"
@@ -75,6 +111,7 @@ export default function LoginScreen() {
           />
 
           <Text style={styles.label}>Password</Text>
+
           <TextInput
             style={styles.input}
             placeholder="Enter your password"
@@ -85,6 +122,31 @@ export default function LoginScreen() {
             autoCapitalize="none"
             autoComplete="current-password"
           />
+
+          {/* Admin login checkbox */}
+          <Pressable
+            style={styles.checkboxRow}
+            onPress={() => setLoginAsAdmin((previous) => !previous)}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: loginAsAdmin }}
+          >
+            <View
+              style={[styles.checkbox, loginAsAdmin && styles.checkboxSelected]}
+            >
+              {loginAsAdmin && (
+                <Ionicons name="checkmark" size={17} color="#FFFFFF" />
+              )}
+            </View>
+
+            <View style={styles.checkboxTextContainer}>
+              <Text style={styles.checkboxTitle}>
+                Login as Admin / Reviewer
+              </Text>
+              <Text style={styles.checkboxSubtitle}>
+                Authorized administrator access only
+              </Text>
+            </View>
+          </Pressable>
 
           <Pressable
             style={({ pressed }) => [
@@ -104,6 +166,7 @@ export default function LoginScreen() {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don't have an account? </Text>
+
             <Link href="/auth/signup" asChild>
               <Pressable>
                 <Text style={styles.link}>Sign Up</Text>
@@ -191,6 +254,40 @@ const styles = StyleSheet.create({
     color: "#0F172A",
     backgroundColor: "#FFFFFF",
     marginBottom: 20,
+  },
+  checkboxRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 22,
+    paddingVertical: 4,
+  },
+  checkbox: {
+    width: 23,
+    height: 23,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: "#CBD5E1",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+  },
+  checkboxSelected: {
+    backgroundColor: "#4F46E5",
+    borderColor: "#4F46E5",
+  },
+  checkboxTextContainer: {
+    marginLeft: 11,
+    flex: 1,
+  },
+  checkboxTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#334155",
+  },
+  checkboxSubtitle: {
+    fontSize: 12,
+    color: "#64748B",
+    marginTop: 3,
   },
   button: {
     height: 52,

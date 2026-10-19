@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React from "react";
 import {
   ImageBackground,
   ScrollView,
@@ -114,19 +113,25 @@ export default function HomeScreen() {
       >
         {/* Hero image and text are separate, like the reference site. */}
         <View style={styles.heroSection}>
-          <ImageBackground
-            source={{
-              uri: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200&auto=format&fit=crop&q=85",
-            }}
-            style={styles.heroImage}
-            imageStyle={styles.heroImageStyle}
-          >
-            <View style={styles.heroImageShade} />
+          <View style={styles.heroImage}>
+            <View style={styles.heroDecorCircle} />
+
             <View style={styles.heroLogo}>
-              <Ionicons name="radio-outline" size={25} color={C.purple} />
+              <Ionicons name="radio-outline" size={30} color="#FFFFFF" />
               <Text style={styles.heroLogoText}>Campaigns</Text>
             </View>
-          </ImageBackground>
+
+            <Text style={styles.heroTagline}>
+              YOUR VOICE.{"\n"}GREATER REACH.
+            </Text>
+
+            <Ionicons
+              name="megaphone-outline"
+              size={30}
+              color="rgba(255,255,255,0.85)"
+              style={styles.heroMegaphone}
+            />
+          </View>
 
           <Text style={[styles.heroTitle, compact && styles.heroTitleCompact]}>
             Deliver messages beyond your feed.
@@ -327,25 +332,53 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#E7EAF0",
+    backgroundColor: "#4338CA",
   },
-  heroImageStyle: { borderRadius: 22, resizeMode: "cover" },
-  heroImageShade: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(242,244,248,0.45)",
-  },
-  heroLogo: {
+  heroDecorCircle: {
     position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    right: -65,
+    top: -100,
+    backgroundColor: "#6366F1",
+  },
+
+  heroTagline: {
+    color: "#E0E7FF",
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 2,
+    textAlign: "center",
+    marginTop: 10,
+    lineHeight: 17,
+  },
+
+  heroMegaphone: {
+    position: "absolute",
+    right: 22,
+    bottom: 18,
+  },
+
+  heroLogo: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 7,
+    gap: 9,
   },
-  heroLogoText: { fontSize: 22, fontWeight: "800", color: C.navy },
+
+  heroLogoText: {
+    fontSize: 25,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    letterSpacing: -0.6,
+  },
+  heroImageStyle: { borderRadius: 22, resizeMode: "cover" },
+  heroImageShade: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(242,244,248,0.45)",
+  },
+
   heroTitle: {
     fontSize: 32,
     lineHeight: 36,
@@ -442,7 +475,7 @@ const styles = StyleSheet.create({
   },
   campaignImageStyle: { resizeMode: "cover" },
   imageShade: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(9,15,30,0.42)",
   },
   categoryBadge: {

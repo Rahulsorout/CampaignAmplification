@@ -16,7 +16,7 @@ function RootNavigator() {
     const currentRoute = segments[1];
 
     // Logged-in users should not remain on login/signup screens.
-    if (user && inAuthGroup) {
+    if (user && inAuthGroup && currentRoute === "signup") {
       router.replace("/(tabs)");
       return;
     }
@@ -43,6 +43,7 @@ function RootNavigator() {
       <Stack.Screen name="index" />
       <Stack.Screen name="auth/login" />
       <Stack.Screen name="auth/signup" />
+      <Stack.Screen name="admin/index" />
       <Stack.Screen name="(tabs)" />
     </Stack>
   );

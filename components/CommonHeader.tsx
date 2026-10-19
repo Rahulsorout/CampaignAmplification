@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
+    Alert,
     Modal,
     ScrollView,
     StyleSheet,
@@ -9,6 +10,8 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "../data/AuthContext";
 
 const C = {
   purple: "#5046E5",
@@ -40,6 +43,19 @@ export default function CommonHeader({
 }: CommonHeaderProps) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [partnersExpanded, setPartnersExpanded] = useState(false);
+  const insets = useSafeAreaInsets();
+  const { signOut } = useAuth();
+
+  const handleLogout = async () => {
+    setMenuVisible(false);
+
+    try {
+      await signOut();
+      router.replace("/auth/login");
+    } catch {
+      Alert.alert("Logout failed", "Please try again.");
+    }
+  };
 
   const go = (
     path: "/(tabs)" | "/(tabs)/explore" | "/(tabs)/profile" | "/(tabs)/create",
@@ -50,7 +66,14 @@ export default function CommonHeader({
 
   return (
     <>
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: insets.top,
+          },
+        ]}
+      >
         <TouchableOpacity
           activeOpacity={0.8}
           accessibilityRole="button"
@@ -59,7 +82,9 @@ export default function CommonHeader({
         >
           <Brand />
         </TouchableOpacity>
+
         {title ? <Text style={styles.pageTitle}>{title}</Text> : null}
+
         {showMenu ? (
           <TouchableOpacity
             accessibilityRole="button"
@@ -80,7 +105,15 @@ export default function CommonHeader({
         statusBarTranslucent
         onRequestClose={() => setMenuVisible(false)}
       >
-        <View style={styles.modalBackdrop}>
+        <View
+          style={[
+            styles.modalBackdrop,
+            {
+              paddingTop: Math.max(insets.top, 6),
+              paddingBottom: Math.max(insets.bottom, 6),
+            },
+          ]}
+        >
           <View style={styles.menuPanel}>
             <View style={styles.menuHeader}>
               <Brand />
@@ -103,11 +136,13 @@ export default function CommonHeader({
                 label="Home"
                 onPress={() => go("/(tabs)")}
               />
+
               <MenuItem
                 icon="compass-outline"
                 label="Explore Campaigns"
                 onPress={() => go("/(tabs)/explore")}
               />
+
               <TouchableOpacity
                 style={styles.menuItem}
                 activeOpacity={0.7}
@@ -121,26 +156,31 @@ export default function CommonHeader({
                   color={C.navy}
                 />
               </TouchableOpacity>
+
               {partnersExpanded ? (
                 <View style={styles.submenu}>
                   <Text style={styles.submenuText}>Partner information</Text>
                 </View>
               ) : null}
+
               <MenuItem
                 icon="settings-outline"
                 label="How It Works"
                 onPress={() => {}}
               />
+
               <MenuItem
                 icon="megaphone-outline"
                 label="Why Fund A Campaign"
                 onPress={() => {}}
               />
+
               <MenuItem
                 icon="sparkles-outline"
                 label="How You Make Impact"
                 onPress={() => {}}
               />
+
               <MenuItem
                 icon="help-circle-outline"
                 label="FAQ"
@@ -148,6 +188,7 @@ export default function CommonHeader({
               />
 
               <View style={styles.divider} />
+
               <TouchableOpacity
                 style={styles.outlineButton}
                 onPress={() => {}}
@@ -155,6 +196,7 @@ export default function CommonHeader({
               >
                 <Text style={styles.outlineButtonText}>Account</Text>
               </TouchableOpacity>
+
               <TouchableOpacity
                 style={styles.outlineButton}
                 onPress={() => go("/(tabs)/profile")}
@@ -164,12 +206,24 @@ export default function CommonHeader({
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.outlineButton}
+                onPress={handleLogout}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="log-out-outline" size={16} color="#DC2626" />
+                <Text style={[styles.outlineButtonText, { color: "#DC2626" }]}>
+                  Logout
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.outlineButton}
                 onPress={() => {}}
                 activeOpacity={0.8}
               >
                 <Ionicons name="mail" size={14} color={C.purple} />
                 <Text style={styles.subscribeText}>Subscribe</Text>
               </TouchableOpacity>
+
               <TouchableOpacity
                 style={styles.createButton}
                 onPress={() => go("/(tabs)/create")}
@@ -218,13 +272,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  brand: { flexDirection: "row", alignItems: "center", gap: 7 },
+
+  brand: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+  },
+
   brandText: {
     fontSize: 20,
     fontWeight: "800",
     letterSpacing: -0.65,
     color: C.navy,
   },
+
   pageTitle: {
     flex: 1,
     marginLeft: 16,
@@ -232,6 +293,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "800",
   },
+
   menuButton: {
     height: 42,
     width: 42,
@@ -242,14 +304,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: C.white,
   },
+
   modalBackdrop: {
     flex: 1,
     backgroundColor: "rgba(226,233,245,0.62)",
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 12,
-    paddingVertical: 6,
   },
+
   menuPanel: {
     width: "100%",
     maxWidth: 340,
@@ -260,6 +323,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: "hidden",
   },
+
   menuHeader: {
     minHeight: 72,
     paddingHorizontal: 16,
@@ -269,6 +333,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#EDF1F7",
   },
+
   closeButton: {
     height: 42,
     width: 42,
@@ -278,16 +343,38 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  menuContent: { paddingHorizontal: 17, paddingTop: 13, paddingBottom: 27 },
+
+  menuContent: {
+    paddingHorizontal: 17,
+    paddingTop: 13,
+    paddingBottom: 27,
+  },
+
   menuItem: {
     minHeight: 54,
     flexDirection: "row",
     alignItems: "center",
     gap: 15,
   },
-  menuItemText: { flex: 1, color: C.navy, fontSize: 16, fontWeight: "600" },
-  submenu: { paddingLeft: 36, paddingVertical: 8 },
-  submenuText: { color: C.body, fontSize: 13, fontWeight: "500" },
+
+  menuItemText: {
+    flex: 1,
+    color: C.navy,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  submenu: {
+    paddingLeft: 36,
+    paddingVertical: 8,
+  },
+
+  submenuText: {
+    color: C.body,
+    fontSize: 13,
+    fontWeight: "500",
+  },
+
   divider: {
     height: 1,
     backgroundColor: "#EDF1F7",
@@ -295,6 +382,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     marginHorizontal: 7,
   },
+
   outlineButton: {
     minHeight: 47,
     borderWidth: 1,
@@ -306,8 +394,19 @@ const styles = StyleSheet.create({
     gap: 7,
     marginBottom: 9,
   },
-  outlineButtonText: { color: C.navy, fontSize: 14, fontWeight: "800" },
-  subscribeText: { color: C.purple, fontSize: 14, fontWeight: "800" },
+
+  outlineButtonText: {
+    color: C.navy,
+    fontSize: 14,
+    fontWeight: "800",
+  },
+
+  subscribeText: {
+    color: C.purple,
+    fontSize: 14,
+    fontWeight: "800",
+  },
+
   createButton: {
     minHeight: 48,
     borderRadius: 13,
@@ -318,5 +417,10 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 1,
   },
-  createButtonText: { color: C.white, fontSize: 14, fontWeight: "800" },
+
+  createButtonText: {
+    color: C.white,
+    fontSize: 14,
+    fontWeight: "800",
+  },
 });
